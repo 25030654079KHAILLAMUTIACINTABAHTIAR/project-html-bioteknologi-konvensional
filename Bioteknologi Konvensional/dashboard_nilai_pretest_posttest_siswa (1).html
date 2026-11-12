@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Nilai Pretest & Posttest Siswa - Pink Room Aesthetic</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pinkroom: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            800: '#9f1239',
+                            900: '#881337',
+                            softBg: '#fff5f8',
+                            accent: '#f472b6',
+                            roseGold: '#e879f9',
+                            cardBg: 'rgba(255, 255, 255, 0.85)',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #fff0f5 0%, #fce7f3 50%, #ffe4e6 100%);
+            background-attachment: fixed;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Glassmorphism card effect */
+        .pink-glass {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(251, 207, 232, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(244, 114, 182, 0.12);
+        }
+
+        .pink-glass-header {
+            background: rgba(255, 241, 245, 0.88);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(251, 207, 232, 0.9);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fce7f3;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f472b6;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ec4899;
+        }
+
+        /* Ambient floating glow circles */
+        .ambient-glow-1 {
+            position: fixed;
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(244, 114, 182, 0.35) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .ambient-glow-2 {
+            position: fixed;
+            bottom: -150px;
+            left: -100px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(251, 113, 133, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen relative pb-12">
+    <!-- Ambient light effects -->
+    <div class="ambient-glow-1"></div>
+    <div class="ambient-glow-2"></div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+        <!-- Top Header Navigation Bar -->
+        <header class="pink-glass rounded-3xl p-5 mb-8 shadow-lg transition-all duration-300">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-500 via-rose-400 to-fuchsia-400 flex items-center justify-center shadow-md shadow-pink-300 text-white text-2xl font-bold">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-3 py-1 bg-pink-100 text-pink-700 text-xs font-semibold rounded-full border border-pink-200">
+                                ✨ Room Pink Edition
+                            </span>
+                            <span class="text-xs text-pink-600 font-medium">Laporan Evaluasi Pembelajaran</span>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight mt-0.5">
+                            Hasil Pretest & Posttest Siswa
+                        </h1>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons Header -->
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <button onclick="openAddModal()" class="px-4 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl shadow-md shadow-pink-300/50 hover:shadow-lg transition-all flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Tambah Data Siswa</span>
+                    </button>
+                    <button onclick="exportToCSV()" class="px-4 py-2.5 bg-white hover:bg-pink-50 text-pink-700 font-semibold rounded-xl border border-pink-300 shadow-sm hover:shadow transition-all flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-file-csv text-pink-600"></i>
+                        <span>Ekspor CSV</span>
+                    </button>
+                    <button onclick="resetToDefaultData()" class="px-3 py-2.5 bg-pink-100 hover:bg-pink-200 text-pink-800 rounded-xl transition-all text-sm font-medium" title="Reset Data Ke Bawaan">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- KPI Summary Cards Grid -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <!-- Total Siswa -->
+            <div class="pink-glass rounded-2xl p-5 hover:translate-y-[-2px] transition-all duration-200">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-pink-700 uppercase tracking-wider">Total Siswa</span>
+                    <div class="w-10 h-10 rounded-xl bg-pink-100 text-pink-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-extrabold text-slate-800" id="kpiTotalSiswa">0</div>
+                <p class="text-xs text-pink-600 font-medium mt-1">Peserta Terdaftar</p>
+            </div>
+
+            <!-- Rata-rata Pretest -->
+            <div class="pink-glass rounded-2xl p-5 hover:translate-y-[-2px] transition-all duration-200">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-pink-700 uppercase tracking-wider">Rata-Rata Pretest</span>
+                    <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-clipboard-question"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-extrabold text-slate-800" id="kpiAvgPretest">0</div>
+                <p class="text-xs text-rose-500 font-medium mt-1">Penilaian Awal</p>
+            </div>
+
+            <!-- Rata-rata Posttest -->
+            <div class="pink-glass rounded-2xl p-5 hover:translate-y-[-2px] transition-all duration-200">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-pink-700 uppercase tracking-wider">Rata-Rata Posttest</span>
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-extrabold text-slate-800" id="kpiAvgPosttest">0</div>
+                <div class="flex items-center gap-1 text-xs text-emerald-600 font-semibold mt-1">
+                    <i class="fa-solid fa-arrow-trend-up"></i>
+                    <span id="kpiAvgGain">+0 Poin Gain</span>
+                </div>
+            </div>
+
+            <!-- Persentase Ketuntasan -->
+            <div class="pink-glass rounded-2xl p-5 hover:translate-y-[-2px] transition-all duration-200">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-pink-700 uppercase tracking-wider">% Ketuntasan</span>
+                    <div class="w-10 h-10 rounded-xl bg-fuchsia-100 text-fuchsia-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-extrabold text-pink-700" id="kpiPassRate">0%</div>
+                <p class="text-xs text-pink-600 font-medium mt-1"><span id="kpiTuntasCount">0</span> Siswa Lulus KKM</p>
+            </div>
+
+            <!-- Perlu Penguatan -->
+            <div class="pink-glass rounded-2xl p-5 hover:translate-y-[-2px] transition-all duration-200 border-l-4 border-l-rose-500">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold text-rose-700 uppercase tracking-wider">Perlu Penguatan</span>
+                    <div class="w-10 h-10 rounded-xl bg-rose-200 text-rose-700 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+                <div class="text-3xl font-extrabold text-rose-700" id="kpiNeedSupportCount">0</div>
+                <p class="text-xs text-rose-600 font-medium mt-1">Memerlukan Remedial</p>
+            </div>
+        </section>
+
+        <!-- Charts Section (Grid layout) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Main Bar Chart Comparison -->
+            <div class="lg:col-span-2 pink-glass rounded-3xl p-6 shadow-md flex flex-col justify-between">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-column text-pink-600"></i>
+                            Perbandingan Nilai Pretest vs Posttest Per Siswa
+                        </h2>
+                        <p class="text-xs text-slate-500">Menampilkan perkembangan capaian skor individual</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center text-xs font-semibold text-pink-700 bg-pink-100 px-2.5 py-1 rounded-lg">
+                            <span class="w-2.5 h-2.5 bg-pink-400 rounded-full inline-block mr-1.5"></span>Pretest
+                        </span>
+                        <span class="inline-flex items-center text-xs font-semibold text-pink-900 bg-pink-200 px-2.5 py-1 rounded-lg">
+                            <span class="w-2.5 h-2.5 bg-pink-600 rounded-full inline-block mr-1.5"></span>Posttest
+                        </span>
+                    </div>
+                </div>
+                <div class="relative w-full h-[320px] overflow-x-auto">
+                    <canvas id="scoreComparisonChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Side Doughnut Chart & Quick Stats -->
+            <div class="pink-glass rounded-3xl p-6 shadow-md flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-1">
+                        <i class="fa-solid fa-chart-pie text-pink-600"></i>
+                        Proporsi Ketuntasan
+                    </h2>
+                    <p class="text-xs text-slate-500 mb-4">Persentase siswa Tuntas vs Perlu Penguatan</p>
+                </div>
+                
+                <div class="relative w-full h-[220px] flex items-center justify-center">
+                    <canvas id="statusDoughnutChart"></canvas>
+                </div>
+
+                <!-- Highlight Insight Box -->
+                <div class="mt-4 p-4 rounded-2xl bg-gradient-to-r from-pink-100/90 to-rose-100/90 border border-pink-200 flex flex-col gap-2">
+                    <div class="flex items-center justify-between text-xs font-semibold text-pink-800">
+                        <span><i class="fa-solid fa-crown text-amber-500 mr-1"></i> Skor Posttest Tertinggi:</span>
+                        <span id="topStudentBadge" class="bg-white px-2 py-0.5 rounded-full text-pink-700 font-bold">-</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs font-semibold text-pink-800">
+                        <span><i class="fa-solid fa-arrow-up-right-dots text-pink-600 mr-1"></i> Peningkatan Terbesar:</span>
+                        <span id="topGainBadge" class="bg-white px-2 py-0.5 rounded-full text-pink-700 font-bold">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Table Data Section -->
+        <section class="pink-glass rounded-3xl p-6 shadow-xl mb-12">
+            <!-- Table Header Toolbar -->
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-extrabold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-table-list text-pink-600"></i>
+                        Daftar Rekapitulasi Nilai Siswa
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Kelola, cari, dan filter data hasil ujian siswa</p>
+                </div>
+
+                <!-- Controls: Filter & Search -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <!-- Search Input -->
+                    <div class="relative min-w-[220px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-pink-400 text-sm"></i>
+                        <input type="text" id="searchInput" oninput="handleSearchOrFilter()" placeholder="Cari nama siswa..." class="w-full pl-9 pr-4 py-2 bg-white/90 border border-pink-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-transparent transition-all shadow-sm">
+                    </div>
+
+                    <!-- Status Filter Tabs -->
+                    <div class="flex p-1 bg-pink-100/80 rounded-xl border border-pink-200 text-xs font-semibold">
+                        <button onclick="setFilter('Semua')" id="filterBtnSemua" class="px-3 py-1.5 rounded-lg transition-all bg-white text-pink-700 shadow-sm">
+                            Semua (<span id="countSemua">0</span>)
+                        </button>
+                        <button onclick="setFilter('Tuntas')" id="filterBtnTuntas" class="px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-pink-700">
+                            Tuntas (<span id="countTuntas">0</span>)
+                        </button>
+                        <button onclick="setFilter('Perlu penguatan')" id="filterBtnPenguatan" class="px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-pink-700">
+                            Perlu Penguatan (<span id="countPenguatan">0</span>)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-x-auto rounded-2xl border border-pink-200 shadow-sm bg-white/70">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-pink-100/90 text-pink-900 text-xs uppercase font-extrabold tracking-wider border-b border-pink-200">
+                            <th class="py-3.5 px-4 cursor-pointer hover:bg-pink-200/60 transition-colors" onclick="sortTable('id')">
+                                No <i class="fa-solid fa-sort text-pink-400 ml-1"></i>
+                            </th>
+                            <th class="py-3.5 px-4 cursor-pointer hover:bg-pink-200/60 transition-colors" onclick="sortTable('nama')">
+                                Nama Siswa <i class="fa-solid fa-sort text-pink-400 ml-1"></i>
+                            </th>
+                            <th class="py-3.5 px-4 text-center cursor-pointer hover:bg-pink-200/60 transition-colors" onclick="sortTable('pre')">
+                                Skor Pretest <i class="fa-solid fa-sort text-pink-400 ml-1"></i>
+                            </th>
+                            <th class="py-3.5 px-4 text-center cursor-pointer hover:bg-pink-200/60 transition-colors" onclick="sortTable('post')">
+                                Skor Posttest <i class="fa-solid fa-sort text-pink-400 ml-1"></i>
+                            </th>
+                            <th class="py-3.5 px-4 text-center cursor-pointer hover:bg-pink-200/60 transition-colors" onclick="sortTable('gain')">
+                                Peningkatan (+Δ) <i class="fa-solid fa-sort text-pink-400 ml-1"></i>
+                            </th>
+                            <th class="py-3.5 px-4 text-center cursor-pointer hover:bg-pink-200/60 transition-colors" onclick="sortTable('ket')">
+                                Keterangan <i class="fa-solid fa-sort text-pink-400 ml-1"></i>
+                            </th>
+                            <th class="py-3.5 px-4 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody" class="divide-y divide-pink-100 text-sm font-medium">
+                        <!-- Table rows populated dynamically via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer info -->
+            <div class="flex flex-col sm:flex-row items-center justify-between mt-4 text-xs text-slate-500 gap-2">
+                <div>
+                    Menampilkan <span id="showingCount" class="font-bold text-pink-700">0</span> dari <span id="totalCountFooter" class="font-bold text-pink-700">0</span> siswa
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-pink-100 border border-pink-300 inline-block"></span> Tuntas
+                    <span class="w-3 h-3 rounded-full bg-rose-100 border border-rose-400 inline-block ml-2"></span> Perlu Penguatan
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Footer Credit -->
+        <footer class="text-center text-xs text-pink-600 font-medium py-4">
+            <p>© 2026 Dashboard Evaluasi Belajar IPA SMP - Designed with Pink Room Aesthetic 🌸</p>
+        </footer>
+
+    </div>
+
+    <!-- Modal Form (Tambah / Edit Siswa) -->
+    <div id="studentModal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="pink-glass rounded-3xl max-w-md w-full p-6 shadow-2xl relative animate-fade-in border border-pink-300">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-pink-200">
+                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2" id="modalTitle">
+                    <i class="fa-solid fa-user-plus text-pink-600"></i>
+                    Tambah Data Siswa
+                </h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-pink-100 hover:bg-pink-200 text-pink-700 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Form Body -->
+            <form id="studentForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+                <input type="hidden" id="editStudentId" value="">
+
+                <div>
+                    <label class="block text-xs font-bold text-pink-800 mb-1">Nama Lengkap Siswa</label>
+                    <input type="text" id="inputNama" required placeholder="Contoh: Joong" class="w-full px-3.5 py-2.5 bg-white border border-pink-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-400 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-pink-800 mb-1">Skor Pretest (0-100)</label>
+                        <input type="number" id="inputPretest" min="0" max="100" required placeholder="0" class="w-full px-3.5 py-2.5 bg-white border border-pink-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-400 focus:outline-none" oninput="autoCalculateKeterangan()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-pink-800 mb-1">Skor Posttest (0-100)</label>
+                        <input type="number" id="inputPosttest" min="0" max="100" required placeholder="0" class="w-full px-3.5 py-2.5 bg-white border border-pink-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-400 focus:outline-none" oninput="autoCalculateKeterangan()">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-pink-800 mb-1">Keterangan Status</label>
+                    <select id="inputKeterangan" class="w-full px-3.5 py-2.5 bg-white border border-pink-200 rounded-xl text-sm focus:ring-2 focus:ring-pink-400 focus:outline-none font-semibold text-pink-900">
+                        <option value="Tuntas">Tuntas</option>
+                        <option value="Perlu penguatan">Perlu penguatan</option>
+                    </select>
+                    <p class="text-[11px] text-pink-500 mt-1">*Otomatis ditentukan berdasar standar KKM (Posttest ≥ 75)</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-pink-200">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-pink-100 hover:bg-pink-200 text-pink-800 font-semibold rounded-xl text-sm transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-semibold rounded-xl text-sm shadow-md shadow-pink-300 transition-all">
+                        Simpan Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Default Data Siswa (36 data dari tabel user)
+        const initialStudents = [
+            { id: 1, nama: "Joong", pre: 78, post: 92, ket: "Tuntas" },
+            { id: 2, nama: "Dunk", pre: 82, post: 95, ket: "Tuntas" },
+            { id: 3, nama: "Pond", pre: 75, post: 88, ket: "Tuntas" },
+            { id: 4, nama: "Phuwin", pre: 80, post: 94, ket: "Tuntas" },
+            { id: 5, nama: "Gemini", pre: 77, post: 91, ket: "Tuntas" },
+            { id: 6, nama: "Fourth", pre: 84, post: 96, ket: "Tuntas" },
+            { id: 7, nama: "First", pre: 69, post: 83, ket: "Tuntas" },
+            { id: 8, nama: "Khaotung", pre: 73, post: 86, ket: "Tuntas" },
+            { id: 9, nama: "Force", pre: 81, post: 93, ket: "Tuntas" },
+            { id: 10, nama: "Book", pre: 76, post: 89, ket: "Tuntas" },
+            { id: 11, nama: "Earth", pre: 85, post: 97, ket: "Tuntas" },
+            { id: 12, nama: "Mix", pre: 79, post: 92, ket: "Tuntas" },
+            { id: 13, nama: "Off", pre: 74, post: 85, ket: "Tuntas" },
+            { id: 14, nama: "Gun", pre: 88, post: 98, ket: "Tuntas" },
+            { id: 15, nama: "Tay", pre: 80, post: 94, ket: "Tuntas" },
+            { id: 16, nama: "Win", pre: 83, post: 96, ket: "Tuntas" },
+            { id: 17, nama: "Nani", pre: 72, post: 82, ket: "Tuntas" },
+            { id: 18, nama: "Dew", pre: 86, post: 95, ket: "Tuntas" },
+            { id: 19, nama: "Jimmy", pre: 79, post: 91, ket: "Tuntas" },
+            { id: 20, nama: "Sea", pre: 77, post: 89, ket: "Tuntas" },
+            { id: 21, nama: "Aou", pre: 84, post: 97, ket: "Tuntas" },
+            { id: 22, nama: "Boom", pre: 81, post: 93, ket: "Tuntas" },
+            { id: 23, nama: "Mark", pre: 75, post: 88, ket: "Tuntas" },
+            { id: 24, nama: "Ford", pre: 87, post: 98, ket: "Tuntas" },
+            { id: 25, nama: "Satang", pre: 78, post: 90, ket: "Tuntas" },
+            { id: 26, nama: "Winny", pre: 82, post: 94, ket: "Tuntas" },
+            { id: 27, nama: "Great", pre: 70, post: 80, ket: "Tuntas" },
+            { id: 28, nama: "Inn", pre: 76, post: 87, ket: "Tuntas" },
+            { id: 29, nama: "Joss", pre: 83, post: 96, ket: "Tuntas" },
+            { id: 30, nama: "Gawin", pre: 79, post: 92, ket: "Tuntas" },
+            { id: 31, nama: "Krist", pre: 85, post: 98, ket: "Tuntas" },
+            { id: 32, nama: "Singto", pre: 74, post: 84, ket: "Tuntas" },
+            { id: 33, nama: "Milk", pre: 80, post: 91, ket: "Tuntas" },
+            { id: 34, nama: "Love", pre: 68, post: 69, ket: "Perlu penguatan" },
+            { id: 35, nama: "Namtan", pre: 77, post: 86, ket: "Tuntas" },
+            { id: 36, nama: "Film", pre: 71, post: 72, ket: "Perlu penguatan" }
+        ];
+
+        // State variables
+        let students = JSON.parse(localStorage.getItem('pink_student_scores')) || [...initialStudents];
+        let currentFilter = 'Semua';
+        let sortColumn = 'id';
+        let sortDirection = 'asc';
+
+        // Chart instances
+        let barChartInstance = null;
+        let doughnutChartInstance = null;
+
+        // Initialize App on DOM Content Loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshDashboard();
+        });
+
+        // Function to refresh all dynamic components
+        function refreshDashboard() {
+            saveToLocalStorage();
+            updateKPIs();
+            renderTable();
+            renderCharts();
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('pink_student_scores', JSON.stringify(students));
+        }
+
+        // Reset Data back to default 36 students
+        function resetToDefaultData() {
+            if (confirm('Apakah Anda yakin ingin mengembalikan data ke daftar awal (36 siswa)?')) {
+                students = JSON.parse(JSON.stringify(initialStudents));
+                refreshDashboard();
+                showToast('Data berhasil dikembalikan ke posisi awal!', 'info');
+            }
+        }
+
+        // Calculate and Update KPI Dashboard Cards
+        function updateKPIs() {
+            const total = students.length;
+            if (total === 0) {
+                document.getElementById('kpiTotalSiswa').innerText = '0';
+                document.getElementById('kpiAvgPretest').innerText = '0';
+                document.getElementById('kpiAvgPosttest').innerText = '0';
+                document.getElementById('kpiAvgGain').innerText = '+0 Poin';
+                document.getElementById('kpiPassRate').innerText = '0%';
+                document.getElementById('kpiTuntasCount').innerText = '0';
+                document.getElementById('kpiNeedSupportCount').innerText = '0';
+                document.getElementById('countSemua').innerText = '0';
+                document.getElementById('countTuntas').innerText = '0';
+                document.getElementById('countPenguatan').innerText = '0';
+                return;
+            }
+
+            const sumPre = students.reduce((acc, curr) => acc + curr.pre, 0);
+            const sumPost = students.reduce((acc, curr) => acc + curr.post, 0);
+            const avgPre = (sumPre / total).toFixed(1);
+            const avgPost = (sumPost / total).toFixed(1);
+            const avgGain = (avgPost - avgPre).toFixed(1);
+
+            const tuntasCount = students.filter(s => s.ket === 'Tuntas').length;
+            const penguatanCount = students.filter(s => s.ket === 'Perlu penguatan').length;
+            const passRate = ((tuntasCount / total) * 100).toFixed(1);
+
+            document.getElementById('kpiTotalSiswa').innerText = total;
+            document.getElementById('kpiAvgPretest').innerText = avgPre;
+            document.getElementById('kpiAvgPosttest').innerText = avgPost;
+            document.getElementById('kpiAvgGain').innerText = `+${avgGain} Poin Gain`;
+            document.getElementById('kpiPassRate').innerText = `${passRate}%`;
+            document.getElementById('kpiTuntasCount').innerText = tuntasCount;
+            document.getElementById('kpiNeedSupportCount').innerText = penguatanCount;
+
+            // Update Counts on Filter Pills
+            document.getElementById('countSemua').innerText = total;
+            document.getElementById('countTuntas').innerText = tuntasCount;
+            document.getElementById('countPenguatan').innerText = penguatanCount;
+
+            // Highlight insights
+            const topStudent = [...students].sort((a, b) => b.post - a.post)[0];
+            const topGainStudent = [...students].sort((a, b) => (b.post - b.pre) - (a.post - a.pre))[0];
+
+            if (topStudent) {
+                document.getElementById('topStudentBadge').innerText = `${topStudent.nama} (${topStudent.post})`;
+            }
+            if (topGainStudent) {
+                const gain = topGainStudent.post - topGainStudent.pre;
+                document.getElementById('topGainBadge').innerText = `${topGainStudent.nama} (+${gain})`;
+            }
+        }
+
+        // Render Data Table
+        function renderTable() {
+            const tbody = document.getElementById('studentTableBody');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            // Filter logic
+            let filtered = students.filter(s => {
+                const matchesSearch = s.nama.toLowerCase().includes(searchVal);
+                const matchesFilter = currentFilter === 'Semua' ? true : s.ket === currentFilter;
+                return matchesSearch && matchesFilter;
+            });
+
+            // Sorting logic
+            filtered.sort((a, b) => {
+                let valA = a[sortColumn];
+                let valB = b[sortColumn];
+
+                if (sortColumn === 'gain') {
+                    valA = a.post - a.pre;
+                    valB = b.post - b.pre;
+                }
+
+                if (typeof valA === 'string') {
+                    return sortDirection === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                }
+                return sortDirection === 'asc' ? valA - valB : valB - valA;
+            });
+
+            // Render Rows
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-8 text-center text-slate-400 font-medium">
+                            <i class="fa-solid fa-folder-open text-3xl mb-2 text-pink-300 block"></i>
+                            Tidak ada data siswa yang cocok dengan kriteria pencarian/filter.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.innerHTML = filtered.map((s, index) => {
+                    const gain = s.post - s.pre;
+                    const isTuntas = s.ket === 'Tuntas';
+                    
+                    const rowClass = isTuntas 
+                        ? 'hover:bg-pink-50/60 transition-colors' 
+                        : 'bg-rose-50/70 hover:bg-rose-100/70 transition-colors';
+
+                    const badgeClass = isTuntas
+                        ? 'bg-pink-100 text-pink-700 border border-pink-300 font-semibold'
+                        : 'bg-rose-100 text-rose-700 border border-rose-300 font-bold animate-pulse';
+
+                    return `
+                        <tr class="${rowClass}">
+                            <td class="py-3 px-4 font-bold text-pink-900 text-center">${s.id}</td>
+                            <td class="py-3 px-4 font-bold text-slate-800">${escapeHtml(s.nama)}</td>
+                            <td class="py-3 px-4 text-center font-medium text-slate-600">${s.pre}</td>
+                            <td class="py-3 px-4 text-center font-bold text-pink-700">${s.post}</td>
+                            <td class="py-3 px-4 text-center font-semibold text-emerald-600">
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-200">
+                                    +${gain}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-center">
+                                <span class="inline-block px-3 py-1 rounded-full text-xs ${badgeClass}">
+                                    ${s.ket}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button onclick="openEditModal(${s.id})" class="w-8 h-8 rounded-lg bg-pink-100 hover:bg-pink-200 text-pink-700 flex items-center justify-center transition-all" title="Edit Data">
+                                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    </button>
+                                    <button onclick="deleteStudent(${s.id})" class="w-8 h-8 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 flex items-center justify-center transition-all" title="Hapus Data">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('showingCount').innerText = filtered.length;
+            document.getElementById('totalCountFooter').innerText = students.length;
+        }
+
+        // Render Chart.js Visualizations
+        function renderCharts() {
+            // Chart 1: Bar Chart (Pretest vs Posttest)
+            const ctxBar = document.getElementById('scoreComparisonChart').getContext('2d');
+            
+            const labels = students.map(s => s.nama);
+            const preData = students.map(s => s.pre);
+            const postData = students.map(s => s.post);
+
+            if (barChartInstance) {
+                barChartInstance.destroy();
+            }
+
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Skor Pretest',
+                            data: preData,
+                            backgroundColor: 'rgba(244, 114, 182, 0.7)', // Pink accent
+                            borderColor: 'rgba(244, 114, 182, 1)',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                        },
+                        {
+                            label: 'Skor Posttest',
+                            data: postData,
+                            backgroundColor: 'rgba(219, 39, 119, 0.85)', // Deep Magenta
+                            borderColor: 'rgba(219, 39, 119, 1)',
+                            borderWidth: 1.5,
+                            borderRadius: 6,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(136, 19, 55, 0.9)',
+                            titleFont: { family: 'Outfit', size: 13, weight: 'bold' },
+                            bodyFont: { family: 'Outfit', size: 12 },
+                            padding: 10,
+                            cornerRadius: 10
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 50,
+                            max: 100,
+                            grid: { color: 'rgba(251, 207, 232, 0.4)' },
+                            ticks: { font: { family: 'Outfit', size: 11 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Outfit', size: 10 }, maxRotation: 45 }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Doughnut Chart (Ketuntasan Status)
+            const ctxDoughnut = document.getElementById('statusDoughnutChart').getContext('2d');
+            const tuntasCount = students.filter(s => s.ket === 'Tuntas').length;
+            const penguatanCount = students.filter(s => s.ket === 'Perlu penguatan').length;
+
+            if (doughnutChartInstance) {
+                doughnutChartInstance.destroy();
+            }
+
+            doughnutChartInstance = new Chart(ctxDoughnut, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tuntas', 'Perlu Penguatan'],
+                    datasets: [{
+                        data: [tuntasCount, penguatanCount],
+                        backgroundColor: [
+                            'rgba(236, 72, 153, 0.85)', // Rose Pink
+                            'rgba(244, 63, 94, 0.85)'   // Coral Red
+                        ],
+                        borderColor: ['#ffffff', '#ffffff'],
+                        borderWidth: 3,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: 'Outfit', size: 12, weight: '600' },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(136, 19, 55, 0.9)',
+                            padding: 10,
+                            cornerRadius: 10
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Filter Handlers
+        function setFilter(filterType) {
+            currentFilter = filterType;
+
+            // Reset Tab UI
+            const btnSemua = document.getElementById('filterBtnSemua');
+            const btnTuntas = document.getElementById('filterBtnTuntas');
+            const btnPenguatan = document.getElementById('filterBtnPenguatan');
+
+            [btnSemua, btnTuntas, btnPenguatan].forEach(btn => {
+                btn.className = "px-3 py-1.5 rounded-lg transition-all text-slate-600 hover:text-pink-700";
+            });
+
+            if (filterType === 'Semua') {
+                btnSemua.className = "px-3 py-1.5 rounded-lg transition-all bg-white text-pink-700 shadow-sm font-bold";
+            } else if (filterType === 'Tuntas') {
+                btnTuntas.className = "px-3 py-1.5 rounded-lg transition-all bg-white text-pink-700 shadow-sm font-bold";
+            } else {
+                btnPenguatan.className = "px-3 py-1.5 rounded-lg transition-all bg-white text-rose-700 shadow-sm font-bold";
+            }
+
+            renderTable();
+        }
+
+        function handleSearchOrFilter() {
+            renderTable();
+        }
+
+        // Sort Column Handler
+        function sortTable(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+            renderTable();
+        }
+
+        // Modal Controls
+        function openAddModal() {
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-user-plus text-pink-600"></i> Tambah Data Siswa';
+            document.getElementById('editStudentId').value = '';
+            document.getElementById('studentForm').reset();
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function openEditModal(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square text-pink-600"></i> Edit Data Siswa';
+            document.getElementById('editStudentId').value = student.id;
+            document.getElementById('inputNama').value = student.nama;
+            document.getElementById('inputPretest').value = student.pre;
+            document.getElementById('inputPosttest').value = student.post;
+            document.getElementById('inputKeterangan').value = student.ket;
+
+            document.getElementById('studentModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+        }
+
+        function autoCalculateKeterangan() {
+            const postVal = parseInt(document.getElementById('inputPosttest').value) || 0;
+            const ketSelect = document.getElementById('inputKeterangan');
+            
+            // Standar KKM 75
+            if (postVal >= 75) {
+                ketSelect.value = 'Tuntas';
+            } else {
+                ketSelect.value = 'Perlu penguatan';
+            }
+        }
+
+        // Handle Add/Edit Form Submission
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('editStudentId').value;
+            const nama = document.getElementById('inputNama').value.trim();
+            const pre = parseInt(document.getElementById('inputPretest').value) || 0;
+            const post = parseInt(document.getElementById('inputPosttest').value) || 0;
+            const ket = document.getElementById('inputKeterangan').value;
+
+            if (editId) {
+                // Update existing
+                const index = students.findIndex(s => s.id == editId);
+                if (index !== -1) {
+                    students[index] = { id: parseInt(editId), nama, pre, post, ket };
+                    showToast(`Data siswa "${nama}" berhasil diperbarui!`, 'success');
+                }
+            } else {
+                // Insert new
+                const newId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
+                students.push({ id: newId, nama, pre, post, ket });
+                showToast(`Siswa "${nama}" berhasil ditambahkan!`, 'success');
+            }
+
+            closeModal();
+            refreshDashboard();
+        }
+
+        // Delete Student
+        function deleteStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (!student) return;
+
+            if (confirm(`Apakah Anda yakin ingin menghapus data siswa "${student.nama}"?`)) {
+                students = students.filter(s => s.id !== id);
+                refreshDashboard();
+                showToast(`Data siswa "${student.nama}" telah dihapus!`, 'warning');
+            }
+        }
+
+        // Export Data to CSV
+        function exportToCSV() {
+            if (students.length === 0) {
+                showToast('Tidak ada data untuk diekspor!', 'warning');
+                return;
+            }
+
+            let csvContent = "No,Nama Siswa,Skor Pretest,Skor Posttest,Peningkatan,Keterangan\n";
+            students.forEach(s => {
+                const gain = s.post - s.pre;
+                csvContent += `"${s.id}","${s.nama}","${s.pre}","${s.post}","+${gain}","${s.ket}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `Hasil_Pretest_Posttest_Siswa_${new Date().toISOString().slice(0,10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            showToast('File CSV berhasil diunduh!', 'success');
+        }
+
+        // Toast Notification Function
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+
+            const bgClass = type === 'success' 
+                ? 'bg-emerald-600 text-white' 
+                : type === 'warning' 
+                ? 'bg-rose-600 text-white' 
+                : 'bg-pink-700 text-white';
+
+            const iconClass = type === 'success' 
+                ? 'fa-circle-check' 
+                : type === 'warning' 
+                ? 'fa-triangle-exclamation' 
+                : 'fa-circle-info';
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl ${bgClass} text-xs font-semibold transform transition-all duration-300 translate-y-[-10px] opacity-0`;
+            toast.innerHTML = `
+                <i class="fa-solid ${iconClass} text-sm"></i>
+                <span>${escapeHtml(message)}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-y-[-10px]', 'opacity-0');
+            }, 10);
+
+            // Auto remove after 3.5 sec
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-[-10px]');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Helper to escape HTML string
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+    </script>
+</body>
+</html>
